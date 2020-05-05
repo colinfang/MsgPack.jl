@@ -62,8 +62,7 @@ function register{T}(::Type{T}, typecode::Integer)
     if haskey(TYPECODE_TO_TYPE, typecode)
         error("Type Code $typecode was already registered")
     end
-    global get_typecode
-    get_typecode(x::T)::Int8 = typecode
+    @eval (::typeof($get_typecode))(x::$T)::Int8 = $typecode
     TYPECODE_TO_TYPE[typecode] = T
 end
 
