@@ -1,6 +1,7 @@
 using MsgPack
 using MsgPack: pack, unpack, Ext
-using Base.Test
+using Test
+using Random
 
 ck_pack(a, b) = pack(a) == b && unpack(b) == a
 round_trip(x) = unpack(pack(x))
@@ -53,12 +54,12 @@ round_trip(x) = unpack(pack(x))
 # str8 - currently unimplemented
 # str16
 s = randstring(2^8)
-@test ck_pack(s, vcat(0xda, 0x01, 0x00, convert(Vector{UInt8}, s)))
+@test ck_pack(s, vcat(0xda, 0x01, 0x00, codeunits(s)))
 s = randstring(2^16 - 1)
-@test ck_pack(s, vcat(0xda, 0xff, 0xff, convert(Vector{UInt8}, s)))
+@test ck_pack(s, vcat(0xda, 0xff, 0xff, codeunits(s)))
 # str32
 s = randstring(2^16)
-@test ck_pack(s, vcat(0xdb, 0x00, 0x01, 0x00, 0x00, convert(Vector{UInt8}, s)))
+@test ck_pack(s, vcat(0xdb, 0x00, 0x01, 0x00, 0x00, codeunits(s)))
 s = ""
 
 # bin8
@@ -139,7 +140,7 @@ b = rand(UInt8, 2^19)
 
 # Custom type
 
-immutable A
+struct A
     a::Int
     b::String
 end
@@ -149,11 +150,11 @@ Base.:(==)(x::A, y::A) = x.a == y.a && x.b == y.b
 MsgPack.register(A, 4)
 
 
-immutable B{T}
+struct B{T}
     a::T
 end
 
-Base.:(==){T}(x::B{T}, y::B{T}) = x.a == y.a
+Base.:(==)(x::B{T}, y::B{T}) where T = x.a == y.a
 
 MsgPack.register(B, 5)
 
